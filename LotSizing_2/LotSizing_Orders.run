@@ -1,0 +1,52 @@
+reset;
+load amplxl.dll; 
+model Lotsizing_Orders.mod;
+
+#Feed data to the parameters
+table TTPlusSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "TTPlus": TTPlus <- [Weeks,WeeksLess] ;
+table ItemsSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "Items": Items <- [Items], a;
+table WeeksSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "Weeks": Weeks <- [Weeks], B;
+table ITSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "IT": IT <- [Items,Weeks],d,h,w;
+table WTSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "WeeksTotal": WeeksTotal <- [WeeksTotal];
+table WTPSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "WeeksTotalPlus": WeeksTotalPlus <- [WeeksTotalPlus];
+table WeeksLessSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "WeeksLess": WeeksLess <- [WeeksLess];
+table MouldsSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "Moulds": Moulds <- [Moulds],b;
+table MISetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "MI": MI <- [Moulds, Items], U;
+table ITTSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "ITT": ITT <- [Items,Weeks,WeeksLess];
+table VehiclesSetExcel IN "amplxl" "Lotsizing_Orders.xlsx" "Vehicles": Vehicles <- [Vehicles], c, lt,u;
+
+read table ItemsSetExcel;
+read table WeeksLessSetExcel;
+read table WeeksSetExcel;
+read table ITSetExcel;
+read table TTPlusSetExcel;
+read table WTSetExcel;
+read table WTPSetExcel;
+read table MISetExcel;
+read table MouldsSetExcel;
+read table ITTSetExcel;
+read table VehiclesSetExcel;
+
+option solver gurobi;
+option gurobi_options 'outlev 1';
+
+solve;
+
+#display Total_Costs;
+
+table Stocks_LS OUT "amplxl":
+	[Items,Weeks], {(i,t) in IT} st[i,t];
+	
+table Production_LS OUT "amplxl":
+	[Items,Weeks], {(i,t) in IT} x[i,t];
+	
+table Backlog_LS OUT "amplxl":
+	[Items,Weeks], {(i,t) in IT} r[i,t];
+
+table Orders_LS OUT "amplxl":
+	[Items,Vehicles,WeeksTotal], {(i,t) in IT, v in Vehicles} ord[i,v,t];
+
+write table Stocks_LS;
+write table Production_LS;
+write table Backlog_LS;
+write table Orders_LS;

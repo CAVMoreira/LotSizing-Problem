@@ -1,0 +1,59 @@
+reset;
+
+
+model TW_LotSizing.mod;
+
+
+load amplxl.dll; 
+#Feed data to the parameters
+table ItemsSetExcel IN "amplxl" "RunTW.xlsx" "Items": Items <- [Items],a,h,w;
+table WeeksSetExcel IN "amplxl" "RunTW.xlsx" "Weeks": Weeks <- [Weeks],B, EB,MouldTime,MouldTimeExtra;
+table IOTGasSetExcel IN "amplxl" "RunTW.xlsx" "IOTGas": IOTGas <- [Items,Orders,WeeksTotal],gas;
+table IOSetExcel IN "amplxl" "RunTW.xlsx" "IO": IO <- [Items,Orders],EWeek,LWeek,d;
+table WTSetExcel IN "amplxl" "RunTW.xlsx" "WeeksTotal": WeeksTotal <- [WeeksTotal];
+table WTPSetExcel IN "amplxl" "RunTW.xlsx" "WeeksTotalPlus": WeeksTotalPlus <- [WeeksTotalPlus];
+table MouldsSetExcel IN "amplxl" "RunTW.xlsx" "Moulds": Moulds <- [Moulds],b;
+table MISetExcel IN "amplxl" "RunTW.xlsx" "MI": MI <- [Moulds, Items],U;
+table OrdersSetExcel IN "amplxl" "RunTW.xlsx" "Orders": Orders <- [Orders];
+
+
+read table ItemsSetExcel;
+read table WeeksSetExcel;
+read table IOSetExcel;
+read table IOTGasSetExcel;
+read table WTSetExcel;
+read table WTPSetExcel;
+read table MISetExcel;
+read table MouldsSetExcel;
+read table OrdersSetExcel;
+
+
+
+#fix disp["beef",1] := 0;
+
+
+option solver gurobi;
+option gurobi_options 'outlev 1' 'nonconvex=2';
+
+solve;
+#display Total_Costs;
+table Results OUT "amplxl":
+	[Items,Orders,Weeks], {(i,o) in IO,t in Weeks} x[i,o,t], {(i,o) in IO,t in Weeks} st[i,o,t], {(i,o) in IO,t in Weeks} r[i,o,t];
+
+table A_Stocks_LS OUT "amplxl":
+	[Items,Orders,Weeks], {i in Items,o in Orders,t in Weeks} st[i,o,t];
+	
+table A_Production_LS OUT "amplxl":
+	[Items,Orders,Weeks], {i in Items,o in Orders,t in Weeks} x[i,o,t];
+	
+table A_Backlog_LS OUT "amplxl":
+	[Items,Orders,Weeks], {i in Items,o in Orders,t in Weeks} r[i,o,t];
+	
+table A_Demand_LS OUT "amplxl":
+	[Items,Orders], {i in Items,o in Orders} d[i,o];
+	
+write table Results;	
+write table A_Stocks_LS;
+write table A_Production_LS;
+write table A_Backlog_LS;
+write table A_Demand_LS;

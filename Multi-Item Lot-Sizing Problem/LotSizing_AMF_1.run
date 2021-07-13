@@ -1,0 +1,63 @@
+reset;
+
+
+model Lotsizing_AMF_1.mod;
+table Vehicles IN: Vehicles <- [Vehicles],c,lt,u;
+read table Vehicles;
+
+load amplxl.dll; 
+#Feed data to the parameters
+table ItemsSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "Items": Items <- [Items],a,h,w;
+table WeeksSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "Weeks": Weeks <- [Weeks],B;
+table IOTSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "IOT": IOT <- [Items,Orders,Weeks],d;
+table WTSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "WeeksTotal": WeeksTotal <- [WeeksTotal];
+table WTPSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "WeeksTotalPlus": WeeksTotalPlus <- [WeeksTotalPlus];
+table MouldsSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "Moulds": Moulds <- [Moulds],b;
+table MISetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "MI": MI <- [Moulds, Items],U;
+
+table OrdersSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "Orders": Orders <- [Orders];
+table IOSetExcel IN "amplxl" "Lotsizing_AMF_2.xlsx" "IO": IO <- [Items,Orders];
+
+read table ItemsSetExcel;
+read table WeeksSetExcel;
+read table IOTSetExcel;
+read table WTSetExcel;
+read table WTPSetExcel;
+read table MISetExcel;
+read table MouldsSetExcel;
+
+read table OrdersSetExcel;
+read table IOSetExcel;
+
+
+#fix disp["beef",1] := 0;
+
+
+option solver gurobi;
+option gurobi_options 'outlev 1';
+
+solve;
+
+#display Total_Costs;
+
+table A_Stocks_LS OUT "amplxl":
+	[Items,Orders,Weeks], {(i,o,t) in IOT} st[i,o,t];
+	
+table A_Production_LS OUT "amplxl":
+	[Items,Orders,Weeks], {(i,o,t) in IOT} x[i,o,t];
+	
+table A_Backlog_LS OUT "amplxl":
+	[Items,Orders,Weeks], {(i,o,t) in IOT} r[i,o,t];
+
+table A_Orders_LS OUT "amplxl":
+	[Items,Vehicles,WeeksTotal], {i in Items,v in Vehicles,t in WeeksTotal} ord[i,v,t];
+	
+table A_Demand_LS OUT "amplxl":
+	[Items,Orders,Weeks], {(i,o) in IO,t in Weeks} d[i,o,t];
+	
+	
+write table A_Stocks_LS;
+write table A_Production_LS;
+write table A_Backlog_LS;
+write table A_Orders_LS;
+write table A_Demand_LS;
