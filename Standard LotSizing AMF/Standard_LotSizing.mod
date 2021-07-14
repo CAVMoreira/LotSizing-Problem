@@ -11,18 +11,20 @@ set IO within {Items,Orders};
 set MI within {Moulds,Items};
 param M = 100000; #Big M
 
-param MouldTime{Weeks}; #Capacidade de produção de um molde numa semana   23800  16680
-param MouldTimeExtra{Weeks}; #Capacidade de produção de um molde numa semana 7120
+
 param d{Items,Orders,Weeks}  >= 0, default 0;  #Procura
 param h{Items}; #Custo Fixo Armazenamento
 param w{Items}; #Custo Backlogging
-param a{Items};  #Tempo de Produção por par
-param b{Moulds};  #Tempo de Set-Up
+param a{Items}; #Tempo de Produção por par
+param b{Moulds};#Tempo de Set-Up
 param U{MI}; #Uso de Moldes
 param B{Weeks};  #Tempo total (Capacidade total da máquina * 0,7)
 param EB{Weeks}; #Tempo Extra 
 param gas{Items,Orders,WeeksTotal} >= 0, default 0; #Qty de chegada de gáspeas
-
+param alpha;
+param beta;
+param MouldTime{Weeks}; #Capacidade de produção de um molde numa semana   23800  16680
+param MouldTimeExtra{Weeks}; #Capacidade de produção de um molde numa semana 7120
 
 var e{Weeks} binary; #Ativação do tempo extra
 var ms{Weeks} binary; #Ativação da semana

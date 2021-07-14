@@ -37,7 +37,7 @@ var x{Items,Orders,Weeks} >= 0 integer; #Quantidade de produto i produzido na se
 var st{Items,Orders,WeeksTotal} >= 0 integer; #Quantidade stock do propduto i na semana t
 var r{Items,Orders,WeeksTotal} >= 0 integer; #Backlogging
 var disp{Items,Orders,WeeksTotalPlus} >=0 integer; #Disponibilidade de gáspeas para o produto i na semana t (Item "i" pode ser substituido se existirem gaspeas usadas para mais
-var D{Items,Orders,Weeks} >=0 integer;
+var TD{Items,Orders,Weeks} >=0 integer;
 
 #do que um sapato
 
@@ -63,7 +63,7 @@ subject to InitialDisp {(i,o) in IO}:
 #Restrições de produção
 	
 subject to ProductConservation {(i,o) in IO, t in Weeks}:
-	ms[t]*x[i,o,t] + (st[i,o,t-1] - r[i,o,t-1]) - D[i,o,t] = - r[i,o,t] + st[i,o,t]; 
+	ms[t]*x[i,o,t] + (st[i,o,t-1] - r[i,o,t-1]) - TD[i,o,t] = - r[i,o,t] + st[i,o,t]; 
 
 subject to ProductLimitation {i in Items, t in Weeks}:
 	sum{o in Orders} x[i,o,t]*a[i] <= sum{(m,ii) in MI: ii=i} (MouldTime[t]*y[m,t]*U[m,ii]+MouldTimeExtra[t]*e[t]*y[m,t]*U[m,ii]); 
@@ -79,13 +79,13 @@ subject to UpperConservation {(i,o) in IO, t in WeeksTotal: t!=0}:
 #Restrições de Janelas Temporais
 
 subject to 1D {(i,o) in IO,t in 1..EWeek[i,o]-1}:
-	D[i,o,t] = 0;
+	TD[i,o,t] = 0;
 	
 subject to 2D {(i,o) in IO,t in LWeek[i,o]+1..last(Weeks)}:
-	D[i,o,t] = 0;
+	TD[i,o,t] = 0;
 	
 subject to 3D {(i,o) in IO,t in EWeek[i,o]..LWeek[i,o]}:
-	D[i,o,t] >= 0;	
+	TD[i,o,t] >= 0;	
 	
 subject to DemandVariation {(i,o) in IO}:
-	sum{t in EWeek[i,o]..LWeek[i,o]} D[i,o,t] = d[i,o];	
+	sum{t in EWeek[i,o]..LWeek[i,o]} TD[i,o,t] = d[i,o];	
